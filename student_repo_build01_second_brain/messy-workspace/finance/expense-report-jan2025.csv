@@ -1,0 +1,12 @@
+Date,Category,Description,Amount (INR),Status
+2025-01-05,Travel,Cab to client meeting (Acme Corp),850,Pending
+2025-01-08,Software,Figma annual subscription (team),72000,Approved
+2025-01-10,Travel,Flight to Mumbai - customer visit,8500,Pending
+2025-01-10,Hotel,Mumbai stay - 1 night,6200,Pending
+2025-01-12,Meals,Team lunch - sprint celebration,4800,Approved
+2025-01-15,Software,Notion team plan renewal,36000,Approved
+2025-01-18,Office,Standing desk for home office,22000,Pending
+2025-01-22,Travel,Cab to Acme Corp follow-up,750,Pending
+2025-01-25,Training,Online PM certification course,15000,Pending
+2025-01-28,Meals,Dinner with Deepak (Acme Corp),3200,Pending
+Total,,,169300,

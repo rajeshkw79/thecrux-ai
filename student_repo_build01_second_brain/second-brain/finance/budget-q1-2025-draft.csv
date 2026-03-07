@@ -1,0 +1,10 @@
+Category,Jan Budget,Jan Actual,Variance,Feb Budget,Mar Budget,Q1 Total Budget,Notes
+Engineering (Salaries),4200000,4200000,0,4500000,4500000,13200000,2 new hires from Jan
+Design (Salaries),1200000,1200000,0,1200000,1200000,3600000,
+Product (Salaries),1800000,1800000,0,1800000,1800000,5400000,
+Cloud Infrastructure,800000,920000,+120000 OVER,850000,900000,2550000,OVERRUN — API scaling. Monitor closely.
+Software Tools,350000,380000,+30000 OVER,350000,350000,1050000,Figma + Notion renewals in Jan
+Marketing,500000,420000,-80000 under,600000,750000,1850000,Campaign ramp-up for Q1
+Travel,200000,150000,-50000 under,250000,300000,750000,Customer visits + team offsite
+Office & Misc,150000,140000,-10000 under,150000,150000,450000,
+Total,9200000,9210000,+10000 OVER,9700000,9950000,28850000,
