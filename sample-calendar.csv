@@ -1,0 +1,8 @@
+time,duration_min,title,attendees,location,notes
+09:30,30,Daily Standup,"You, Amit, Suvi, Pranav",Google Meet,"Sprint progress, blockers, priorities"
+11:00,60,Client Prep — Acme Corp Demo,"You, Priya Nair, Sales Team",Conference Room B,"Review demo deck, assign speaking roles, dry run"
+12:30,60,Lunch Break,—,—,—
+14:00,60,Budget Review with Deepa,"You, Deepa R",Your Office,"Q4 audit findings, AWS overspend, Mysuru capex"
+14:00,30,Client Prep Sync,"You, Priya Nair",Google Meet,"Final check on Acme deck — CONFLICTS WITH BUDGET REVIEW"
+16:00,30,1:1 with Rajesh (CEO),"You, Rajesh Sharma",Rajesh's Office,"Board deck, Sequoia intro, Q4 numbers"
+17:30,30,Interview — Senior Backend Engineer,"You, Amit, HR",Google Meet,"Candidate: Arjun M. — resume in shared drive"
