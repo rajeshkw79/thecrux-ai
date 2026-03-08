@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>theboringtasks.com — Stop doing the same thing twice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #080807;
+    --bg-2:      #0f0f0e;
+    --bg-3:      #161615;
+    --surface:   #111110;
+    --border:    #232320;
+    --border-hi: #2e2e2a;
+    --text:      #dddbd4;
+    --text-muted:#6b6960;  /* P1-5: raised from text-dim for section labels */
+    --text-dim:  #4a4945;  /* P1-5: raised from #363530 */
+    --amber:     #d4a853;
+    --amber-dim: rgba(212,168,83,0.12);
+    --amber-glow:rgba(212,168,83,0.25);
+    --green:     #4a8a5c;
+    --red:       #c0503a;
+    --font-head: 'Syne', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --r: 4px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:15px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+
+  /* P2-4: Scanline — removed position:fixed to eliminate scroll repaint.
+     Now applied as a static overlay on html element instead. */
+  html::before{
+    content:'';
+    position:fixed;
+    inset:0;
+    background:repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.06) 3px,
+      rgba(0,0,0,0.06) 4px
+    );
+    pointer-events:none;
+    z-index:999;
+    will-change:auto;
+  }
+
+  /* ── NAV ── */
+  nav{
+    position:sticky;top:0;z-index:100;
+    border-bottom:1px solid var(--border);
+    background:rgba(8,8,7,0.94);
+    backdrop-filter:blur(16px);
+  }
+  .nav-inner{
+    max-width:1120px;margin:0 auto;
+    padding:14px 32px;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;
+  }
+  .logo-wrap{display:flex;align-items:center;gap:10px}
+  .logo-mark svg{display:block}
+  .logo-text{
+    font-family:var(--font-mono);font-size:0.8rem;font-weight:500;
+    letter-spacing:0.04em;color:var(--text);
+  }
+  .logo-text span{color:var(--amber)}
+  .nav-links{
+    display:flex;gap:28px;list-style:none;
+    font-family:var(--font-mono);font-size:0.72rem;
+    color:var(--text-muted);letter-spacing:0.04em;
+  }
+  .nav-links a:hover{color:var(--text);transition:color 0.15s}
+  .nav-right{display:flex;align-items:center;gap:12px}
+  .nav-status{
+    display:flex;align-items:center;gap:8px;
+    font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted);
+    border:1px solid var(--border);border-radius:var(--r);padding:6px 12px;
+  }
+  .status-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--green);box-shadow:0 0 6px var(--green);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .nav-cta{
+    background:var(--amber);color:#080807;
+    padding:7px 18px;border-radius:var(--r);
+    font-family:var(--font-mono);font-size:0.72rem;font-weight:500;
+    letter-spacing:0.04em;
+    transition:opacity 0.15s,transform 0.1s;
+  }
+  .nav-cta:hover{opacity:0.85;transform:translateY(-1px)}
+
+  /* P0-3: Hamburger button */
+  .hamburger{
+    display:none;
+    flex-direction:column;gap:5px;cursor:pointer;
+    background:none;border:none;padding:4px;
+  }
+  .hamburger span{
+    display:block;width:22px;height:2px;
+    background:var(--text-muted);border-radius:2px;
+    transition:transform 0.2s,opacity 0.2s;
+  }
+  .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .hamburger.open span:nth-child(2){opacity:0}
+  .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+  /* P0-3: Mobile drawer */
+  .mobile-nav{
+    display:none;
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(8,8,7,0.98);
+    z-index:90;
+    flex-direction:column;align-items:center;justify-content:center;
+    gap:32px;
+  }
+  .mobile-nav.open{display:flex}
+  .mobile-nav a{
+    font-family:var(--font-head);font-size:1.8rem;font-weight:700;
+    color:var(--text-muted);transition:color 0.15s;
+    letter-spacing:-0.01em;
+  }
+  .mobile-nav a:hover{color:var(--text)}
+  .mobile-nav .mobile-cta{
+    background:var(--amber);color:#080807;
+    padding:12px 32px;border-radius:var(--r);
+    font-family:var(--font-mono);font-size:0.85rem;font-weight:500;
+    margin-top:8px;
+  }
+
+  /* ── HERO ── */
+  .hero{
+    max-width:1120px;margin:0 auto;
+    padding:90px 32px 80px;
+    position:relative;z-index:1;
+  }
+  .hero-grid{
+    display:grid;grid-template-columns:1fr 340px;
+    gap:64px;align-items:start;
+  }
+  .hero-eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--font-mono);font-size:0.7rem;font-weight:500;
+    letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--amber);border:1px solid var(--amber-glow);
+    background:var(--amber-dim);
+    padding:5px 12px;border-radius:100px;margin-bottom:24px;
+  }
+  /* P1-4: founder credibility badge */
+  .hero-credibility{
+    display:inline-flex;align-items:center;gap:8px;margin-left:8px;
+    font-family:var(--font-mono);font-size:0.68rem;font-weight:500;
+    letter-spacing:0.06em;color:var(--text-dim);
+    border:1px solid var(--border);padding:5px 12px;border-radius:100px;
+  }
+  .hero h1{
+    font-family:var(--font-head);
+    font-size:clamp(2.6rem,5vw,4.2rem); /* P2-5: bolder, bigger */
+    font-weight:800;line-height:1.06;letter-spacing:-0.02em;
+    color:#fff;margin-bottom:20px;
+  }
+  /* P2-5: "Stop doing the same thing twice" is now the hero H1 */
+  .hero-founder-line{
+    font-size:0.95rem;color:var(--text-muted);
+    line-height:1.7;margin-bottom:10px;
+    font-style:italic;
+  }
+  .hero-sub{
+    font-size:1rem;color:var(--text-muted);
+    max-width:500px;line-height:1.75;margin-bottom:28px;
+  }
+  /* P1-2: social proof near CTA */
+  .hero-proof{
+    display:flex;align-items:center;gap:8px;margin-bottom:28px;
+  }
+  .hero-proof-avatars{
+    display:flex;
+  }
+  .hero-proof-avatars span{
+    width:26px;height:26px;border-radius:50%;
+    background:var(--bg-3);border:2px solid var(--bg);
+    font-family:var(--font-mono);font-size:0.55rem;color:var(--amber);
+    display:flex;align-items:center;justify-content:center;
+    margin-left:-8px;
+  }
+  .hero-proof-avatars span:first-child{margin-left:0}
+  .hero-proof-text{font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);letter-spacing:0.02em}
+  .hero-proof-text strong{color:var(--text)}
+
+  .hero-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .btn-primary{
+    background:var(--amber);color:#080807;
+    padding:13px 28px;border-radius:var(--r);
+    font-family:var(--font-mono);font-size:0.8rem;font-weight:500;
+    letter-spacing:0.04em;
+    transition:opacity 0.15s,transform 0.12s;display:inline-block;
+  }
+  .btn-primary:hover{opacity:0.87;transform:translateY(-2px)}
+  .hero-note{font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);letter-spacing:0.02em}
+
+  /* P0-1: Inline hero mini-form */
+  .hero-form{
+    display:flex;gap:8px;flex-wrap:wrap;max-width:440px;
+  }
+  .hero-form input[type="email"]{
+    flex:1;min-width:200px;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r);padding:10px 14px;
+    font-family:var(--font-mono);font-size:0.75rem;color:var(--text);
+    letter-spacing:0.02em;outline:none;
+    transition:border-color 0.15s;
+  }
+  .hero-form input[type="email"]::placeholder{color:var(--text-dim)}
+  .hero-form input[type="email"]:focus{border-color:var(--amber-glow)}
+  .hero-form button{
+    background:var(--amber);color:#080807;
+    border:none;padding:10px 18px;border-radius:var(--r);
+    font-family:var(--font-mono);font-size:0.75rem;font-weight:500;
+    letter-spacing:0.04em;cursor:pointer;
+    transition:opacity 0.15s;white-space:nowrap;
+  }
+  .hero-form button:hover{opacity:0.87}
+
+  /* terminal panel */
+  .hero-terminal{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r);overflow:hidden;font-family:var(--font-mono);font-size:0.75rem;
+  }
+  .terminal-bar{
+    background:var(--bg-3);border-bottom:1px solid var(--border);
+    padding:9px 14px;display:flex;align-items:center;gap:7px;
+  }
+  .t-dot{width:10px;height:10px;border-radius:50%}
+  .t-dot.r{background:#c0503a}.t-dot.y{background:#d4a853}.t-dot.g{background:#4a8a5c}
+  .terminal-title{margin-left:6px;font-size:0.68rem;color:var(--text-muted);letter-spacing:0.04em}
+  /* P1-3: plain English terminal body */
+  .terminal-body{padding:16px 18px;line-height:2;color:var(--text-muted)}
+  .t-task{color:var(--text);font-weight:500}
+  .t-detail{color:var(--text-dim);font-size:0.68rem}
+  .t-ok{color:var(--green)}
+  .t-cursor{
+    display:inline-block;width:7px;height:13px;
+    background:var(--amber);vertical-align:middle;
+    animation:blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+  /* ── SECTIONS ── */
+  .sw{border-top:1px solid var(--border)}
+  .sw.alt{background:var(--bg-2)}
+  section{
+    max-width:1120px;margin:0 auto;
+    padding:88px 32px;position:relative;z-index:1;
+  }
+  /* P1-5: s-label contrast raised from text-dim to text-muted */
+  .s-label{
+    font-family:var(--font-mono);font-size:0.68rem;font-weight:500;
+    letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--text-muted); /* was text-dim */
+    margin-bottom:14px;
+  }
+  .s-title{
+    font-family:var(--font-head);
+    font-size:clamp(1.8rem,3vw,2.8rem);
+    font-weight:800;line-height:1.1;letter-spacing:-0.02em;
+    color:#fff;margin-bottom:16px;
+  }
+  .s-sub{
+    font-size:0.95rem;color:var(--text-muted);
+    max-width:520px;line-height:1.75;margin-bottom:48px;
+  }
+
+  /* ── STORY / GENESIS — P1-6: compressed, no duplication ── */
+  .story-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;}
+  .story-quotes{display:flex;flex-direction:column;gap:14px}
+  .story-quote{
+    border:1px solid var(--border);border-left:2px solid var(--amber);
+    background:var(--surface);border-radius:0 var(--r) var(--r) 0;padding:20px 24px;
+  }
+  .story-quote blockquote{
+    font-family:var(--font-head);font-size:1.05rem;font-style:italic;
+    line-height:1.5;color:var(--text);margin-bottom:10px;
+  }
+  .story-quote cite{
+    font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);
+    font-style:normal;letter-spacing:0.04em;
+  }
+  /* P2-2: second quote */
+  .story-quote.secondary{border-left-color:var(--border-hi)}
+  .story-quote.secondary blockquote{font-size:0.95rem}
+  .thesis-box{
+    border:1px solid var(--border);background:var(--bg-3);
+    border-radius:var(--r);padding:14px 18px;
+    font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);line-height:1.6;
+  }
+  .thesis-box span{color:var(--amber)}
+  .stat-callout{
+    display:flex;gap:24px;margin-top:14px;
+  }
+  .stat-item{text-align:center}
+  .stat-number{
+    font-family:var(--font-head);font-size:1.8rem;font-weight:800;
+    color:var(--amber);line-height:1;
+  }
+  .stat-label{font-family:var(--font-mono);font-size:0.65rem;color:var(--text-dim);letter-spacing:0.06em;margin-top:4px}
+
+  /* ── PAIN ── */
+  .pain-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:1px;background:var(--border);
+    border:1px solid var(--border);border-radius:var(--r);overflow:hidden;
+  }
+  .pain-card{background:var(--surface);padding:20px 22px;transition:background 0.15s;}
+  .pain-card:hover{background:var(--bg-3)}
+  /* P1-1: pain roles — proper case, no underscores */
+  .pain-role{
+    font-family:var(--font-mono);font-size:0.65rem;font-weight:500;
+    letter-spacing:0.08em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;
+  }
+  .pain-card p{font-size:0.85rem;color:var(--text-muted);line-height:1.6}
+
+  /* ── OFFERING ── */
+  .offering-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;
+  }
+  .offering-card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r);padding:20px 22px;
+    transition:border-color 0.15s,background 0.15s;
+  }
+  .offering-card:hover{border-color:var(--amber-glow);background:var(--bg-2)}
+  /* P1-1: task labels proper case */
+  .offering-num{
+    font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);
+    letter-spacing:0.06em;margin-bottom:8px;
+  }
+  .offering-card h3{
+    font-family:var(--font-head);font-size:0.95rem;font-weight:700;
+    color:#fff;margin-bottom:6px;
+  }
+  .offering-card p{font-size:0.83rem;color:var(--text-muted);line-height:1.6}
+
+  /* ── HOW ── */
+  .steps{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+    border:1px solid var(--border);border-radius:var(--r);overflow:hidden;
+  }
+  .step{padding:28px 24px;border-right:1px solid var(--border);background:var(--surface);}
+  .step:last-child{border-right:none}
+  /* P1-1: step labels proper case */
+  .step-num{
+    font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.08em;
+    color:var(--amber);margin-bottom:12px;
+  }
+  .step h3{font-family:var(--font-head);font-size:1rem;font-weight:700;color:#fff;margin-bottom:8px;}
+  .step p{font-size:0.83rem;color:var(--text-muted);line-height:1.65}
+
+  /* ── PRICING ── */
+  .pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start;}
+  .price-card{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r);padding:20px;position:relative;
+  }
+  .price-card.featured{border-color:var(--amber);background:var(--amber-dim);}
+  .price-badge{
+    position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+    background:var(--amber);color:#080807;
+    font-family:var(--font-mono);font-size:0.6rem;font-weight:500;
+    letter-spacing:0.08em;text-transform:uppercase;
+    padding:3px 10px;border-radius:100px;white-space:nowrap;
+  }
+  /* P1-1: plan names proper case */
+  .price-plan{
+    font-family:var(--font-mono);font-size:0.65rem;font-weight:500;
+    letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px;
+  }
+  .price-amount{font-family:var(--font-head);font-size:2.2rem;font-weight:800;color:#fff;line-height:1;margin-bottom:4px;}
+  .price-usd{font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);margin-bottom:20px}
+  .price-features{list-style:none;margin-bottom:20px}
+  .price-features li{
+    font-size:0.8rem;color:var(--text-muted);
+    padding:7px 0;border-bottom:1px solid var(--border);
+    display:flex;gap:8px;align-items:flex-start;
+  }
+  .price-features li::before{
+    content:'→';color:var(--green);font-family:var(--font-mono);
+    font-size:0.7rem;margin-top:2px;flex-shrink:0;
+  }
+  /* P1-7: task run footnote */
+  .pricing-footnote{
+    margin-top:20px;font-family:var(--font-mono);font-size:0.65rem;
+    color:var(--text-dim);line-height:1.6;letter-spacing:0.02em;
+  }
+  .pricing-footnote a{color:var(--amber);text-decoration:underline;text-decoration-color:var(--amber-glow)}
+  /* P2-3: VC backing near pricing */
+  .pricing-vc{
+    margin-top:16px;padding-top:16px;border-top:1px solid var(--border);
+    font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);
+    display:flex;align-items:center;gap:8px;
+  }
+  .pricing-vc::before{content:'◆';color:var(--amber);font-size:0.55rem}
+  /* P2-6: data security line */
+  .pricing-security{
+    margin-top:10px;font-family:var(--font-mono);font-size:0.68rem;
+    color:var(--text-dim);display:flex;align-items:center;gap:8px;
+  }
+  .pricing-security::before{content:'🔒';font-size:0.7rem}
+
+  .btn-outline{
+    display:block;text-align:center;
+    border:1px solid var(--border);color:var(--text);
+    padding:9px 14px;border-radius:var(--r);
+    font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.04em;
+    transition:border-color 0.15s,background 0.15s;width:100%;
+  }
+  .btn-outline:hover{border-color:var(--amber-glow);background:var(--amber-dim)}
+  .btn-amber{
+    display:block;text-align:center;
+    background:var(--amber);color:#080807;
+    padding:9px 14px;border-radius:var(--r);
+    font-family:var(--font-mono);font-size:0.72rem;font-weight:500;letter-spacing:0.04em;
+    transition:opacity 0.15s;width:100%;
+  }
+  .btn-amber:hover{opacity:0.85}
+
+  /* ── COMPARISON ── */
+  .compare-table{
+    width:100%;border-collapse:collapse;
+    border:1px solid var(--border);border-radius:var(--r);overflow:hidden;font-size:0.83rem;
+  }
+  .compare-table th{
+    text-align:left;padding:10px 16px;background:var(--bg-3);
+    border-bottom:1px solid var(--border);
+    font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.08em;
+    text-transform:uppercase;color:var(--text-muted);
+  }
+  .compare-table th.ours{color:var(--amber)}
+  .compare-table td{
+    padding:12px 16px;border-bottom:1px solid var(--border);
+    color:var(--text-muted);background:var(--surface);vertical-align:top;
+  }
+  .compare-table tr:last-child td{border-bottom:none}
+  .compare-table td:first-child{color:var(--text);font-weight:500}
+  .tag-yes{color:var(--green);font-family:var(--font-mono);font-size:0.75rem}
+  .tag-no{color:var(--red);font-family:var(--font-mono);font-size:0.75rem}
+  .tag-partial{color:var(--amber);font-family:var(--font-mono);font-size:0.75rem}
+
+  /* ── FAQ — P2-1 ── */
+  .faq-list{display:flex;flex-direction:column;gap:2px;margin-top:0}
+  .faq-item{
+    border:1px solid var(--border);border-radius:var(--r);
+    background:var(--surface);overflow:hidden;
+  }
+  .faq-q{
+    width:100%;display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;background:none;border:none;cursor:pointer;
+    text-align:left;gap:16px;
+    transition:background 0.15s;
+  }
+  .faq-q:hover{background:var(--bg-3)}
+  .faq-q-text{
+    font-family:var(--font-head);font-size:0.95rem;font-weight:700;color:#fff;
+  }
+  .faq-icon{
+    font-family:var(--font-mono);font-size:0.9rem;color:var(--amber);
+    flex-shrink:0;transition:transform 0.2s;
+  }
+  .faq-item.open .faq-icon{transform:rotate(45deg)}
+  .faq-a{
+    display:none;padding:0 20px 16px;
+    font-size:0.875rem;color:var(--text-muted);line-height:1.7;
+  }
+  .faq-item.open .faq-a{display:block}
+
+  /* ── ABOUT ── */
+  .team-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:12px;margin-top:36px;
+  }
+  .team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;}
+  .team-avatar{
+    width:40px;height:40px;border-radius:var(--r);
+    background:var(--bg-3);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:0.9rem;font-weight:500;color:var(--amber);margin-bottom:14px;
+  }
+  .team-name{font-family:var(--font-head);font-size:1rem;font-weight:700;color:#fff;margin-bottom:2px}
+  .team-role{
+    font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.08em;
+    text-transform:uppercase;color:var(--amber);margin-bottom:10px;
+  }
+  .team-bio{font-size:0.82rem;color:var(--text-muted);line-height:1.65}
+  .mission-box{
+    margin-top:36px;background:var(--surface);border:1px solid var(--border);
+    border-left:2px solid var(--amber);border-radius:0 var(--r) var(--r) 0;padding:24px 28px;
+  }
+  .mission-box h3{font-family:var(--font-head);font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:10px}
+  .mission-box p{font-size:0.9rem;color:var(--text-muted);line-height:1.75;max-width:660px}
+  .mission-box p+p{margin-top:12px}
+
+  /* ── APP ── */
+  .app-inner{display:grid;grid-template-columns:1fr auto;gap:64px;align-items:center;}
+  .app-text h2{
+    font-family:var(--font-head);font-size:clamp(1.7rem,3vw,2.4rem);font-weight:800;
+    line-height:1.1;color:#fff;margin-bottom:14px;
+  }
+  .app-text p{font-size:0.9rem;color:var(--text-muted);line-height:1.75;max-width:460px}
+  /* P2-7: app launch badge */
+  .app-launch-badge{
+    display:inline-flex;align-items:center;gap:6px;margin-top:12px;
+    font-family:var(--font-mono);font-size:0.68rem;color:var(--amber);
+    border:1px solid var(--amber-glow);background:var(--amber-dim);
+    padding:4px 10px;border-radius:100px;letter-spacing:0.04em;
+  }
+  .app-btns{display:flex;flex-direction:column;gap:10px}
+  .app-btn{
+    display:flex;align-items:center;gap:12px;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r);padding:11px 18px;min-width:190px;transition:border-color 0.15s;
+  }
+  .app-btn:hover{border-color:var(--amber-glow)}
+  .app-btn-icon{font-size:1.3rem;flex-shrink:0}
+  .app-btn-text small{display:block;font-family:var(--font-mono);font-size:0.6rem;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;}
+  .app-btn-text strong{font-family:var(--font-mono);font-size:0.8rem;color:var(--text);font-weight:500}
+
+  /* ── WAITLIST CTA — P0-1: full form ── */
+  .cta-wrap{text-align:center;padding:100px 32px;max-width:1120px;margin:0 auto;}
+  .cta-wrap h2{
+    font-family:var(--font-head);font-size:clamp(2rem,4vw,3.2rem);
+    font-weight:800;line-height:1.1;color:#fff;margin-bottom:16px;
+  }
+  .cta-wrap p{font-size:0.95rem;color:var(--text-muted);margin-bottom:32px}
+  .waitlist-form{
+    display:flex;flex-direction:column;gap:10px;
+    max-width:460px;margin:0 auto;
+  }
+  .waitlist-form input{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--r);padding:12px 16px;
+    font-family:var(--font-mono);font-size:0.8rem;color:var(--text);
+    letter-spacing:0.02em;outline:none;
+    transition:border-color 0.15s;width:100%;
+  }
+  .waitlist-form input::placeholder{color:var(--text-dim)}
+  .waitlist-form input:focus{border-color:var(--amber-glow)}
+  .waitlist-form .form-row{display:flex;gap:10px}
+  .waitlist-form .form-row input{flex:1}
+  .waitlist-form button{
+    background:var(--amber);color:#080807;border:none;
+    padding:13px 24px;border-radius:var(--r);
+    font-family:var(--font-mono);font-size:0.8rem;font-weight:500;letter-spacing:0.04em;
+    cursor:pointer;width:100%;transition:opacity 0.15s,transform 0.1s;
+  }
+  .waitlist-form button:hover{opacity:0.87;transform:translateY(-1px)}
+  .form-note{margin-top:12px;font-family:var(--font-mono);font-size:0.65rem;color:var(--text-dim);letter-spacing:0.02em}
+
+  /* ── FOOTER ── */
+  footer{border-top:1px solid var(--border);background:var(--bg-2);position:relative;z-index:1;}
+  .footer-inner{
+    max-width:1120px;margin:0 auto;padding:24px 32px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+  }
+  .footer-copy{font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);letter-spacing:0.04em}
+  .footer-links{display:flex;gap:24px;list-style:none}
+  .footer-links a{font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);transition:color 0.15s}
+  .footer-links a:hover{color:var(--text-muted)}
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:960px){
+    .hero-grid{grid-template-columns:1fr}
+    .hero-terminal{display:none}
+    .story-grid{grid-template-columns:1fr}
+    .steps{grid-template-columns:1fr}
+    .step{border-right:none;border-bottom:1px solid var(--border)}
+    .step:last-child{border-bottom:none}
+    .pricing-grid{grid-template-columns:1fr 1fr}
+    .app-inner{grid-template-columns:1fr}
+  }
+  @media(max-width:580px){
+    .pricing-grid{grid-template-columns:1fr}
+    /* P0-3: hide desktop nav links, show hamburger */
+    .nav-links{display:none}
+    .nav-status{display:none}
+    .hamburger{display:flex}
+    section{padding:64px 20px}
+    .hero{padding:64px 20px 48px}
+    .footer-inner{flex-direction:column;align-items:flex-start}
+    .waitlist-form .form-row{flex-direction:column}
+    .hero-credibility{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- P0-3: Mobile nav drawer -->
+<div class="mobile-nav" id="mobile-nav">
+  <a href="#offering" onclick="closeNav()">Product</a>
+  <a href="#how" onclick="closeNav()">How it works</a>
+  <a href="#pricing" onclick="closeNav()">Pricing</a>
+  <a href="#faq" onclick="closeNav()">FAQ</a>
+  <a href="#about" onclick="closeNav()">About</a>
+  <a href="#waitlist" class="mobile-cta" onclick="closeNav()">Join the waitlist</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo-wrap">
+      <div class="logo-mark">
+        <svg width="28" height="22" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0"  width="28" height="4" rx="2" fill="#d4a853"/>
+          <rect x="0" y="9"  width="20" height="4" rx="2" fill="#d4a853" opacity="0.7"/>
+          <rect x="0" y="18" width="12" height="4" rx="2" fill="#d4a853" opacity="0.4"/>
+        </svg>
+      </div>
+      <div class="logo-text">the<span>boring</span>tasks</div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#offering">Product</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="nav-status">
+        <span class="status-dot"></span>
+        Waitlist open
+      </div>
+      <a href="#waitlist" class="nav-cta">Join the waitlist</a>
+      <!-- P0-3: hamburger -->
+      <button class="hamburger" id="hamburger" onclick="toggleNav()" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div style="position:relative;z-index:1">
+  <div class="hero">
+    <div class="hero-grid">
+      <div>
+        <!-- P1-4: credibility in eyebrow -->
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+          <div class="hero-eyebrow">India launch in 6 weeks</div>
+          <div class="hero-credibility">Founded by a 2× founder · ₹91 crore exit</div>
+        </div>
+        <!-- P2-5: "Stop doing the same thing twice" is now the hero headline -->
+        <h1>Stop doing the<br />same thing twice.</h1>
+        <p class="hero-founder-line">She kept seeing it everywhere — smart, expensive people spending 30% of their week on tasks that should already be automated.</p>
+        <p class="hero-sub">So she built AI agents that learn your recurring work and run it on a schedule — reliably, in your format, without you re-explaining every time.</p>
+
+        <!-- P1-2: social proof near CTA -->
+        <div class="hero-proof">
+          <div class="hero-proof-avatars">
+            <span>PM</span><span>VP</span><span>FA</span><span>OM</span><span>+</span>
+          </div>
+          <div class="hero-proof-text">
+            Join <strong>4,800+</strong> knowledge workers already on the waitlist
+          </div>
+        </div>
+
+        <!-- P0-1: inline mini email form in hero -->
+        <form class="hero-form" onsubmit="handleHeroSubmit(event)">
+          <input type="email" placeholder="your@email.com" required autocomplete="email" />
+          <button type="submit">Join the waitlist →</button>
+        </form>
+        <div style="margin-top:10px" class="hero-note">Free to join · India launch Q2 2024</div>
+      </div>
+
+      <!-- P1-3: terminal with plain English output -->
+      <div class="hero-terminal">
+        <div class="terminal-bar">
+          <div class="t-dot r"></div><div class="t-dot y"></div><div class="t-dot g"></div>
+          <div class="terminal-title">agent.log — last 7 days</div>
+        </div>
+        <div class="terminal-body">
+          <div class="t-task">Weekly Status Report</div>
+          <div class="t-detail">Pulled from email, Notion, Slack</div>
+          <div class="t-ok">✓ Drafted &amp; sent — Monday 8:02am</div>
+          <br/>
+          <div class="t-task">Sales Pipeline Follow-ups</div>
+          <div class="t-detail">12 contextual emails generated</div>
+          <div class="t-ok">✓ Approved &amp; sent — Tuesday 9:15am</div>
+          <br/>
+          <div class="t-task">Month-End Reconciliation</div>
+          <div class="t-detail">3 anomalies flagged for your review</div>
+          <div class="t-ok">✓ Summary ready to send</div>
+          <br/>
+          <div class="t-detail">Next run: Monday 8:00am</div>
+          <div style="color:var(--text-muted)">Waiting<span class="t-cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GENESIS — P1-6: compressed, no duplication with hero -->
+<div class="sw">
+  <section>
+    <div class="s-label">// The origin</div>
+    <div class="story-grid">
+      <div>
+        <h2 class="s-title">The insight that started it.</h2>
+        <p style="font-size:0.95rem;color:var(--text-muted);line-height:1.8;margin-bottom:20px">
+          After her first exit, our founder spent a year inside her portfolio companies — not advising, just watching. At every company, the same six task types were eating 30–40% of each knowledge worker's week. A 200-person company was burning the equivalent of <strong style="color:var(--text)">60 full-time salaries</strong> on tasks that were perfectly automatable.
+        </p>
+        <div class="stat-callout">
+          <div class="stat-item">
+            <div class="stat-number">30%</div>
+            <div class="stat-label">of every week lost</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">60</div>
+            <div class="stat-label">FTE equivalent at 200 people</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">0</div>
+            <div class="stat-label">tools built for this</div>
+          </div>
+        </div>
+      </div>
+      <div class="story-quotes">
+        <div class="story-quote">
+          <blockquote>"I know AI can do amazing things. But honestly? I just want something that does the boring things reliably, without drama, and without me having to explain it every time."</blockquote>
+          <cite>— VP of Operations, logistics firm (closed beta)</cite>
+        </div>
+        <!-- P2-2: second quote -->
+        <div class="story-quote secondary">
+          <blockquote>"I showed it our Friday report process once. It's been running for 8 weeks without me touching it."</blockquote>
+          <cite>— Head of Finance, B2B SaaS company (closed beta)</cite>
+        </div>
+        <div class="thesis-box">
+          <div style="margin-bottom:6px"><span>→ thesis:</span></div>
+          The boring tasks are not the exception. They are the steady drain. And no one had built an AI product specifically for that.
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- PAIN -->
+<div class="sw alt">
+  <section>
+    <div class="s-label">// Sound familiar?</div>
+    <h2 class="s-title">Your team is brilliant.<br />Their Monday morning isn't.</h2>
+    <p class="s-sub">Across every company, the same six task types eat the most time — and they're all automatable.</p>
+    <div class="pain-grid">
+      <!-- P1-1: proper case role labels, no underscores -->
+      <div class="pain-card">
+        <div class="pain-role">The PM</div>
+        <p>Reformats the same status report every Friday afternoon. Three tools, two copy-pastes, one Slack message asking "has anyone updated the risks column?"</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-role">The Sales Lead</div>
+        <p>Copy-pastes deal details from the CRM into a pipeline email every Monday. Every week. 200+ times. Could do it in his sleep.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-role">The Finance Analyst</div>
+        <p>Runs the same month-end reconciliation macro, then spends 45 minutes cleaning the output. Then another 30 formatting it for the CFO.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-role">The Ops Manager</div>
+        <p>Answers the same 12 supplier questions every Monday morning. Same questions. Same answers. Different suppliers. Different inboxes.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- OFFERING -->
+<div class="sw">
+  <section id="offering">
+    <div class="s-label">// The product</div>
+    <h2 class="s-title">Not a chatbot.<br />An agent that runs your tasks.</h2>
+    <p class="s-sub">You teach it once — by walking through the task or describing it in plain language. It handles it from then on, on a schedule, in your format.</p>
+    <div class="offering-grid">
+      <!-- P1-1: "Task 01" not "task_01" -->
+      <div class="offering-card">
+        <div class="offering-num">Task 01</div>
+        <h3>Weekly Reports</h3>
+        <p>Auto-drafts status updates, pipeline reports, and board summaries by pulling from your connected tools. Arrives before you sit down Monday.</p>
+      </div>
+      <div class="offering-card">
+        <div class="offering-num">Task 02</div>
+        <h3>Follow-up Sequences</h3>
+        <p>Contextual follow-ups for sales, ops, and client management. No copy-paste. No "did anyone send the follow-up?"</p>
+      </div>
+      <div class="offering-card">
+        <div class="offering-num">Task 03</div>
+        <h3>Document Formatting</h3>
+        <p>Messy inputs — meeting notes, voice memos, raw data — transformed into clean formatted documents in your house style, every time.</p>
+      </div>
+      <div class="offering-card">
+        <div class="offering-num">Task 04</div>
+        <h3>Data Cleanup</h3>
+        <p>Reconciles spreadsheets, normalises formats, flags anomalies, and produces ready-to-send summaries. No 45-minute post-macro cleanup.</p>
+      </div>
+      <div class="offering-card">
+        <div class="offering-num">Task 05</div>
+        <h3>Meeting Summaries</h3>
+        <p>Reads transcripts, extracts decisions, action items, and open questions — in your format, ready to send.</p>
+      </div>
+      <div class="offering-card">
+        <div class="offering-num">Task 06</div>
+        <h3>Inbox Triage</h3>
+        <p>Categorises, drafts responses, and flags priority emails by context. Your inbox, managed.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="sw alt">
+  <section id="how">
+    <div class="s-label">// How it works</div>
+    <h2 class="s-title">Three steps.<br />Then it just runs.</h2>
+    <p class="s-sub">Most AI requires you to re-explain every time. We built something different.</p>
+    <div class="steps">
+      <!-- P1-1: "Step 01" not "step_01" -->
+      <div class="step">
+        <div class="step-num">Step 01</div>
+        <h3>Teach it once</h3>
+        <p>Walk through the task as you normally would, or describe it in plain language. The agent learns your format, your voice, your definitions — and remembers permanently.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 02</div>
+        <h3>Set the schedule</h3>
+        <p>Tell it when to run — every Monday at 8am, every Friday EOD, the 1st of every month. It runs automatically. No prompts. No reminders. It just happens.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 03</div>
+        <h3>Review the output</h3>
+        <p>Your task is ready. Review, approve, send. Every run is logged — full audit trail. Nothing goes out without your sign-off.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- PRICING -->
+<div class="sw">
+  <section id="pricing">
+    <div class="s-label">// Pricing</div>
+    <h2 class="s-title">Pay for time saved.<br />Not for features you won't use.</h2>
+    <p class="s-sub">India-first pricing. UPI payments. No annual lock-in on Free and Pro.</p>
+    <div class="pricing-grid">
+      <!-- P1-1: proper case plan names -->
+      <div class="price-card">
+        <div class="price-plan">Free</div>
+        <div class="price-amount">₹0</div>
+        <div class="price-usd">Forever free</div>
+        <ul class="price-features">
+          <li>5 task runs / month</li>
+          <li>2 task types</li>
+          <li>Manual trigger only</li>
+          <li>Basic output formats</li>
+        </ul>
+        <a href="#waitlist" class="btn-outline">Get started</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-badge">Most popular</div>
+        <div class="price-plan">Pro</div>
+        <div class="price-amount">₹999</div>
+        <div class="price-usd">~$12 / month</div>
+        <ul class="price-features">
+          <li>100 task runs / month</li>
+          <li>Unlimited task types</li>
+          <li>Scheduled automation</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#waitlist" class="btn-amber">Join the waitlist</a>
+      </div>
+      <div class="price-card">
+        <div class="price-plan">Team</div>
+        <div class="price-amount">₹2,499</div>
+        <div class="price-usd">~$29 / user / month</div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>Shared task library</li>
+          <li>Admin dashboard</li>
+          <li>SSO + Slack alerts</li>
+        </ul>
+        <a href="#waitlist" class="btn-outline">Join the waitlist</a>
+      </div>
+      <div class="price-card">
+        <div class="price-plan">Enterprise</div>
+        <div class="price-amount" style="font-size:1.5rem">Custom</div>
+        <div class="price-usd">Contact us</div>
+        <ul class="price-features">
+          <li>On-prem option</li>
+          <li>Custom integrations</li>
+          <li>SLA guarantees</li>
+          <li>Dedicated support</li>
+        </ul>
+        <a href="mailto:hello@theboringtasks.com" class="btn-outline">Talk to us</a>
+      </div>
+    </div>
+    <!-- P1-7: task run definition -->
+    <div class="pricing-footnote">
+      * A <strong style="color:var(--text-muted)">task run</strong> = one automated execution of a task (e.g. one weekly report drafted, one batch of follow-ups generated, one spreadsheet cleaned). Unused runs don't roll over.
+    </div>
+    <!-- P2-3: VC backing surfaced near pricing -->
+    <div class="pricing-vc">
+      Backed by a top-tier Indian VC · Seed funded · Bangalore
+    </div>
+    <!-- P2-6: data security line -->
+    <div class="pricing-security">
+      Your data is never used to train our models. On-prem available for Enterprise.
+    </div>
+  </section>
+</div>
+
+<!-- COMPARISON -->
+<div class="sw alt">
+  <section>
+    <div class="s-label">// vs. everything else</div>
+    <h2 class="s-title">Every other tool solves<br />a different problem.</h2>
+    <p class="s-sub">We handle the recurring tasks that fall through every existing category.</p>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>The limitation</th>
+          <th>Learns format?</th>
+          <th>Runs on schedule?</th>
+          <th>Audit log?</th>
+          <th class="ours">theboringtasks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>General AI assistant</td>
+          <td>No memory, re-explain every time, no scheduling</td>
+          <td><span class="tag-no">✗ No</span></td>
+          <td><span class="tag-no">✗ No</span></td>
+          <td><span class="tag-no">✗ No</span></td>
+          <td><span class="tag-yes">✓ Yes</span></td>
+        </tr>
+        <tr>
+          <td>No-code workflow automation</td>
+          <td>Too technical, breaks silently, no accountability</td>
+          <td><span class="tag-partial">~ Partial</span></td>
+          <td><span class="tag-yes">✓ Yes</span></td>
+          <td><span class="tag-partial">~ Limited</span></td>
+          <td><span class="tag-yes">✓ Yes</span></td>
+        </tr>
+        <tr>
+          <td>AI inside existing tools</td>
+          <td>Only works inside one tool's ecosystem</td>
+          <td><span class="tag-no">✗ No</span></td>
+          <td><span class="tag-no">✗ No</span></td>
+          <td><span class="tag-no">✗ No</span></td>
+          <td><span class="tag-yes">✓ Yes</span></td>
+        </tr>
+        <tr>
+          <td>Developer-grade automation</td>
+          <td>Requires a developer or specialist to set up and maintain</td>
+          <td><span class="tag-yes">✓ Yes</span></td>
+          <td><span class="tag-yes">✓ Yes</span></td>
+          <td><span class="tag-partial">~ Partial</span></td>
+          <td><span class="tag-yes">✓ Yes</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<!-- FAQ — P2-1 -->
+<div class="sw">
+  <section id="faq">
+    <div class="s-label">// FAQ</div>
+    <h2 class="s-title">Questions you'll have<br />before you sign up.</h2>
+    <p class="s-sub" style="margin-bottom:32px">Honest answers. No marketing speak.</p>
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">How long does setup take for a new task?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">Most tasks take 10–20 minutes to set up for the first time. You walk through the task once — either by doing it while the agent watches, or by describing it in plain language. After that, it runs automatically. No coding. No configuration files. If your task is complex (e.g. pulling from 5 sources and formatting to a specific template), expect 30 minutes and one round of refinement.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">What tools does it connect to?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">At launch: Gmail, Google Sheets, Google Docs, Notion, Slack, and file uploads (CSV, XLSX, PDF, DOCX). CRM integrations (for sales follow-ups) and calendar access (for meeting summaries) are coming in the 4 weeks following launch. Enterprise plan includes custom integrations on request.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Is my data secure? Where does it go?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">Your data is processed to run your tasks and is never used to train our models. Data is encrypted in transit and at rest. We do not store the content of your documents beyond what's needed to run the task and maintain the audit log. Enterprise plan includes on-premises deployment for teams that can't use cloud infrastructure.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">What happens if the output is wrong?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">Nothing goes out without your approval. Every task run produces a draft that you review, edit, and approve before it's sent or filed. The agent also keeps a full log of every run — what input it used, what it produced, and what you approved. If a run is wrong, you can correct it and the agent learns from the correction for next time.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          <span class="faq-q-text">Can I pause or stop a scheduled task?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">Yes — any time, from the web app or the mobile app. You can pause a task for a specific week (e.g. holiday), change the schedule, or turn it off entirely. You can also trigger a task manually at any time outside its schedule, which uses one of your monthly task runs.</div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<!-- ABOUT -->
+<div class="sw alt">
+  <section id="about">
+    <div class="s-label">// About</div>
+    <h2 class="s-title">Built by people who got tired<br />of doing the same thing twice.</h2>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-avatar">P</div>
+        <div class="team-name">Priya Nair</div>
+        <!-- P1-1: proper case, not "ceo & co-founder" -->
+        <div class="team-role">CEO &amp; Co-Founder</div>
+        <div class="team-bio">Second-time founder. Previously built and sold a B2B hiring automation tool (₹91 crore exit to a large HR tech company). 15 years across product, strategy, and founding roles. Graduate of a top Indian business school. Knows what she doesn't know; that's why she hired Karan.</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">K</div>
+        <div class="team-name">Karan Shah</div>
+        <div class="team-role">CTO &amp; Co-Founder</div>
+        <div class="team-bio">8 years at a leading SaaS platform across engineering and architecture. Built the workflow engine used by 65,000+ businesses globally. Left to build something he could explain to his mother. Parents still confused.</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">D</div>
+        <div class="team-name">Divya Menon</div>
+        <div class="team-role">Head of Design</div>
+        <div class="team-bio">Led redesigns at a leading food delivery platform and a leading payments platform. Believes most AI product UX is solving the wrong problem. Joined because she got to redesign onboarding before the product was built.</div>
+      </div>
+    </div>
+    <div class="mission-box">
+      <h3>Why we exist</h3>
+      <p><strong style="color:#fff">Mission:</strong> To give every knowledge worker back the hours they spend doing work that should already be automated.</p>
+      <p><strong style="color:#fff">Vision:</strong> A world where AI handles the bottom 30% of every professional's task list — not because those tasks don't matter, but because they're too important to be done inconsistently and too repetitive to need a human every time.</p>
+    </div>
+  </section>
+</div>
+
+<!-- APP — P2-7: launch badge -->
+<div class="sw">
+  <section>
+    <div class="app-inner">
+      <div class="app-text">
+        <div class="s-label">// Mobile apps</div>
+        <h2>Review, approve, trigger.<br />From wherever you are.</h2>
+        <p style="margin-top:14px">The web is your primary interface. The app is for reviewing outputs, approving runs, and triggering tasks on the go.</p>
+        <!-- P2-7: scannable launch date -->
+        <div class="app-launch-badge">📱 Apps launching Q2 2024 — 4 weeks after web</div>
+      </div>
+      <div class="app-btns">
+        <a href="#" class="app-btn">
+          <span class="app-btn-icon">🍎</span>
+          <div class="app-btn-text">
+            <small>Coming soon to</small>
+            <strong>App Store</strong>
+          </div>
+        </a>
+        <a href="#" class="app-btn">
+          <span class="app-btn-icon">▶</span>
+          <div class="app-btn-text">
+            <small>Coming soon to</small>
+            <strong>Google Play</strong>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- WAITLIST CTA — P0-1: full form, P0-2: no broken href -->
+<div class="sw alt" id="waitlist">
+  <div class="cta-wrap">
+    <div class="s-label" style="display:inline-block;margin-bottom:14px">// Waitlist open</div>
+    <h2>Stop doing the same thing twice.</h2>
+    <p>India launch in 6 weeks. Join 4,800+ professionals already on the list.</p>
+    <!-- P0-1: real email capture form -->
+    <form class="waitlist-form" onsubmit="handleWaitlistSubmit(event)">
+      <div class="form-row">
+        <input type="text" placeholder="Your name" required autocomplete="name" />
+        <input type="text" placeholder="Company" autocomplete="organization" />
+      </div>
+      <input type="email" placeholder="Work email" required autocomplete="email" />
+      <input type="text" placeholder="Your role (e.g. VP Operations, Head of Finance)" />
+      <button type="submit">Join the waitlist →</button>
+    </form>
+    <div class="form-note">No spam. No pitch deck. Just a heads-up when we launch — and early access pricing.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <svg width="18" height="14" viewBox="0 0 28 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0"  width="28" height="4" rx="2" fill="#d4a853"/>
+          <rect x="0" y="9"  width="20" height="4" rx="2" fill="#d4a853" opacity="0.7"/>
+          <rect x="0" y="18" width="12" height="4" rx="2" fill="#d4a853" opacity="0.4"/>
+        </svg>
+        <span class="footer-copy">theboringtasks.com</span>
+      </div>
+      <div class="footer-copy">© 2024 The Boring Tasks Pvt. Ltd. All rights reserved.</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#">Terms &amp; Conditions</a></li>
+      <li><a href="#">Privacy Policy</a></li>
+      <li><a href="mailto:hello@theboringtasks.com">Contact</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+  // P0-3: Mobile nav toggle
+  function toggleNav() {
+    const nav = document.getElementById('mobile-nav');
+    const btn = document.getElementById('hamburger');
+    nav.classList.toggle('open');
+    btn.classList.toggle('open');
+    document.body.style.overflow = nav.classList.contains('open') ? 'hidden' : '';
+  }
+  function closeNav() {
+    const nav = document.getElementById('mobile-nav');
+    const btn = document.getElementById('hamburger');
+    nav.classList.remove('open');
+    btn.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
+
+  // P2-1: FAQ accordion
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  // P0-1: Form handlers (placeholder — connect to your email service)
+  function handleHeroSubmit(e) {
+    e.preventDefault();
+    const email = e.target.querySelector('input[type="email"]').value;
+    e.target.innerHTML = '<div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--green);padding:10px 0">✓ You\'re on the list — we\'ll be in touch before launch.</div>';
+    // TODO: POST to /api/waitlist or your email service (Mailchimp, ConvertKit, etc.)
+  }
+  function handleWaitlistSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    form.innerHTML = '<div style="font-family:var(--font-head);font-size:1.3rem;color:var(--green);padding:24px 0">✓ You\'re on the list.<br/><span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted)">We\'ll send you early access details before India launch.</span></div>';
+    // TODO: POST to /api/waitlist or your email service
+  }
+</script>
+
+</body>
+</html>
